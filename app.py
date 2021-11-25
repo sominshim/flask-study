@@ -81,6 +81,16 @@ def delete(id):
             name = name,
             our_users=our_users)
 
+<<<<<<< HEAD
+=======
+
+# Create a From Class
+class NamerForm(FlaskForm):
+    name = StringField("What's Your Name", validators=[DataRequired()])
+    submit =SubmitField("Submit")
+# learn more
+# https://flask-wtf.readthedocs.io/en/1.0.x/
+>>>>>>> parent of 924bb53 (Update hash pw)
 
 @app.route('/user/add', methods=['GET', 'POST'])
 def add_user():
@@ -134,6 +144,7 @@ def page_not_found(e):
 def page_not_found(e):
     return render_template("500.html"), 500
 
+<<<<<<< HEAD
 # Create Password Test Page
 @app.route('/test_pw', methods=['GET', 'POST'])
 def test_pw():
@@ -165,6 +176,8 @@ def test_pw():
 		form = form)
 
 # Create name Page
+=======
+>>>>>>> parent of 924bb53 (Update hash pw)
 @app.route('/name', methods=['GET', 'POST'])
 def name():
     name = None
