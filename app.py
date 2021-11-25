@@ -105,6 +105,11 @@ def delete(id):
             name = name,
             our_users=our_users)
 
+# Create a PasswordForm Class
+class PasswordForm(FlaskForm):
+    email = StringField("What's Your Name", validators=[DataRequired()])
+    password_hash = PasswordField("What's Your Password", validators=[DataRequired()])
+    submit =SubmitField("Submit")
 
 # Create a From Class
 class NamerForm(FlaskForm):
@@ -165,6 +170,37 @@ def page_not_found(e):
 def page_not_found(e):
     return render_template("500.html"), 500
 
+# Create Password Test Page
+@app.route('/test_pw', methods=['GET', 'POST'])
+def test_pw():
+    email = None
+    password = None
+    pw_to_check = None
+    passed = None
+    form = PasswordForm()
+
+    # Validation Form
+    if form.validate_on_submit():
+        email = form.email.data
+        password = form.password_hash.data
+        # Clear the form
+        form.email.data = ''
+        form.password_hash.data = ''
+
+        # lookup User By Email Address
+        pw_to_check = Users.query.filter_by(email=email).first()
+        # flash("Form Submmitted Successfully!")
+
+        password = check_password_hash(pw_to_check.password_hash, password)
+
+    return render_template("test_pw.html",
+        email = email,
+        password = password,
+        pw_to_check = pw_to_check,
+        passed = passed,
+        form = form)
+
+# Create name Page
 @app.route('/name', methods=['GET', 'POST'])
 def name():
     name = None
