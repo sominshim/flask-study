@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, flash
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField # 텍스트 입력.. 제출 등에 필요함
 from wtforms.validators import DataRequired # 유효성 검사
@@ -43,7 +43,12 @@ def name():
     if form.validate_on_submit():
         name = form.name.data
         form.name.data = ''
+        flash("Form Submmitted Successfully!")
 
     return render_template("name.html",
         name = name,
         form = form)
+
+        
+if __name__ == "__main__":
+    app.run(debug=True)
