@@ -1,11 +1,13 @@
 from enum import unique
 from flask import Flask, render_template, flash, request
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField # 텍스트 입력.. 제출 등에 필요함
+from wtforms import StringField, SubmitField, PasswordField, BooleanField, ValidationError # 텍스트 입력.. 제출 등에 필요함
 from datetime import datetime
-from wtforms.validators import DataRequired # 유효성 검사
+from wtforms.fields.simple import PasswordField
+from wtforms.validators import DataRequired, EqualTo, Length # 유효성 검사
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Create a Flask Instance
 app = Flask(__name__)
@@ -28,6 +30,19 @@ class Users(db.Model):
     email = db.Column(db.String(30), nullable=False, unique=True)
     favorite_color = db.Column(db.String(30))
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
+    # Do some password stuff !!
+    password_hash = db.Column(db.String(128))
+
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute !')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
     # Create a String
     def __repr__(self):
@@ -38,6 +53,8 @@ class UserForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired()])
     favorite_color = StringField("Favorite_Color")
+    password_hash = PasswordField('Password', validators=[DataRequired(), EqualTo('password_hash2', message='Passwords Must Match!')])
+    password_hash2 = PasswordField('Confirm Password', validators=[DataRequired()])
     submit =SubmitField("Submit")
 
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
@@ -105,13 +122,18 @@ def add_user():
     if form.validate_on_submit():
         user = Users.query.filter_by(email=form.email.data).first()
         if user is None:
-            user = Users(name=form.name.data, email=form.email.data, favorite_color=form.favorite_color.data)
+            # Hash the password !!
+            hashed_pw = generate_password_hash(form.password_hash.data, "sha256")
+            user = Users(name=form.name.data, email=form.email.data, 
+                        favorite_color=form.favorite_color.data,
+                        password_hash=hashed_pw)
             db.session.add(user)
             db.session.commit()
         name = form.name.data
         form.name.data = ''
         form.email.data = ''
         form.favorite_color.data = ''
+        form.password_hash.data = ''
 
         flash("User Added Successfully!")
     our_users = Users.query.order_by(Users.date_added)
