@@ -1,11 +1,37 @@
+from enum import unique
 from flask import Flask, render_template, flash
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField # 텍스트 입력.. 제출 등에 필요함
 from wtforms.validators import DataRequired # 유효성 검사
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+
 
 # Create a Flask Instance
 app = Flask(__name__)
+# Add Database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+# Secret Key
 app.config['SECRET_KEY'] = "my super secret key that no one is supposed to know"
+# Initialize the DB
+db = SQLAlchemy(app)
+
+# Create Model
+class Users(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(30), nullable=False)
+    email = db.Column(db.String(30), nullable=False, unique=True)
+    date_added = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Create a String
+    def __repr__(self):
+        return '<Name %r>' % self.name
+
+# Create a Form Class
+class UserForm(FlaskForm):
+    name = StringField("Name", validators=[DataRequired()])
+    email = StringField("Email", validators=[DataRequired()])
+    submit =SubmitField("Submit")
 
 # Create a From Class
 class NamerForm(FlaskForm):
@@ -13,6 +39,30 @@ class NamerForm(FlaskForm):
     submit =SubmitField("Submit")
 # learn more
 # https://flask-wtf.readthedocs.io/en/1.0.x/
+
+@app.route('/user/add', methods=['GET', 'POST'])
+def add_user():
+    name = None
+    form = UserForm()
+
+    # Validation Form
+    if form.validate_on_submit():
+        user = Users.query.filter_by(email=form.email.data).first()
+        if user is None:
+            user = Users(name=form.name.data, email=form.email.data)
+            db.session.add(user)
+            db.session.commit()
+        name = form.name.data
+        form.name.data = ''
+        form.email.data = ''
+        flash("User Added Successfully!")
+
+    our_users = Users.query.order_by(Users.date_added)
+    return render_template("add_user.html",
+        form = form,
+        name = name,
+        our_users=our_users)
+
 
 @app.route('/')
 def index():
@@ -49,6 +99,6 @@ def name():
         name = name,
         form = form)
 
-        
+
 if __name__ == "__main__":
     app.run(debug=True)
