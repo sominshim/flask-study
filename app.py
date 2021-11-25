@@ -82,7 +82,10 @@ def delete(id):
             our_users=our_users)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> parent of 924bb53 (Update hash pw)
 
 # Create a From Class
 class NamerForm(FlaskForm):
@@ -145,6 +148,7 @@ def page_not_found(e):
     return render_template("500.html"), 500
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Create Password Test Page
 @app.route('/test_pw', methods=['GET', 'POST'])
 def test_pw():
@@ -176,6 +180,8 @@ def test_pw():
 		form = form)
 
 # Create name Page
+=======
+>>>>>>> parent of 924bb53 (Update hash pw)
 =======
 >>>>>>> parent of 924bb53 (Update hash pw)
 @app.route('/name', methods=['GET', 'POST'])
