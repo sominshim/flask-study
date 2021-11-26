@@ -1,18 +1,25 @@
 from enum import unique
-from flask import Flask, render_template, flash, request, url_for
+from flask import Flask, render_template, flash, request, url_for, jsonify
 from werkzeug.utils import redirect
 from wtforms.fields.simple import StringField, SubmitField
 from wtforms.validators import DataRequired
-
+from flask_paginate import Pagination, get_page_parameter
 from db_connect import db
 from flask_migrate import Migrate
-from models import Users, UserForm, PasswordForm, NamerForm, LoginForm
+from models import Users, UserForm, PasswordForm, LoginForm, Rental, Book, Review
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, login_manager, login_user, LoginManager, login_required, logout_user, current_user
+from sqlalchemy.sql import func
+from sqlalchemy import asc, desc
+import babel
+ 
+def format_datetime(value, format='yyyy-MM-dd HH:mm:ss'):
+    return babel.dates.format_datetime(value, format)
+ 
 
 # Create a Flask Instance
 app = Flask(__name__)
-
+app.jinja_env.filters['datetime'] = format_datetime
 # Add Database
 # Old SQLite DB
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
@@ -25,6 +32,8 @@ app.config['SECRET_KEY'] = "my super secret key that no one is supposed to know"
 db.init_app(app)
 migrate = Migrate(app, db)
 
+with app.app_context():
+    db.create_all()
 # Flask_Login Stuff
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -143,11 +152,66 @@ def add_user():
         name = name,
         our_users=our_users)
 
-
 @app.route('/')
 def index():
-    first_name = "John"
-    return render_template("index.html", first_name = first_name)
+    return render_template(
+        "index.html",
+        book_list= Book.query.all()
+    )
+
+@app.route('/test/<int:id>')
+def test(id):
+    book = Book.query.filter(Book.id == id).first()
+    reviews = ( 
+        Review.query.filter(Review.book_id == book.id)
+              .order_by(desc(Review.created)).all()
+        )
+
+    return render_template(
+        "test.html",
+        book = book,
+        reviews = reviews
+    )
+
+
+
+@app.route("/book/<int:id>")
+# @is_exists_book(redirect_endpoint="main.index")
+def book_detail(id):
+    book = Book.query.filter(Book.id == id).first()
+
+    reviews = (
+            db.session.query(Review)
+            .filter(Review.book_id == book.id)
+            .order_by(desc(Review.created))
+            .all()
+        )
+
+    is_rented = None
+    can_write_review = False
+    
+    query_result = dict(
+            Book.query.with_entities(
+                func.avg(Review.score).label("score"), func.count().label("count")
+            )
+            .filter(Review.book_id == book.id)
+            .first()
+        )
+
+    if query_result["count"] > 0:
+        result = query_result
+    else: result = None
+
+        
+    return render_template(
+        "book_detail.html",
+        book=book,
+        is_rented=is_rented,
+        can_write_review=can_write_review,
+        get_score=result,
+        reviews=reviews
+    )
+
 
 # Create Custom Error Pages
 # Invalid URL

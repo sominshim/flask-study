@@ -1,13 +1,32 @@
 {% extends 'base.html' %}
 
+{% block title %}도서 목록{% endblock %}
 {% block content %}
-
-    <h1>Hello World!</h1>
-
-    <p>This is my first webpage</p>
-
-    <p>My name is {{ first_name }}</p>
-
-    <p>{{ stuff }}</p>
+<div class="container">
+    <h2>도서 목록</h2>
+    
+    <div class="row row-cols-1 row-cols-xs-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-3">  
+    {% for book in book_list %}
+    <div class="col">
+      <div class="card book-card shadow-sm h-100">
+        <a href="{{ url_for('test', id=book.id)}}"><img class="book-image card-img-top" width="100%" height="305" style="object-fit: scale-down;" src="{{ url_for('static', filename='images/{}'.format(book.img_path)) }}" focusable="false"> </img></a>
+    
+        <div class="card-body">
+          <h5 class="card-title book-title" alt ="{{ book.book_name }}"><a class="card-link" href="{{ url_for('test', id=book.id)}}">{{ book.book_name }}</a></h5>
+    
+            <div class="row align-items-center">
+              <div class="col col-7"> 
+                <h6 class="card-subtitle mb-2 text-muted">{{book.author}}</h6>
+              </div>  
+              <div class="col me-auto text-end"> 
+                <h6 style="font-size:0.8em;" class="card-subtitle mb-2 text-muted">{{book.stock}} 권 남음</h6> 
+              </div>   
+            </div>
+    
+        </div>
+      </div>
+    </div> 
+    {% endfor %} 
+    </div>
 
 {% endblock %}
