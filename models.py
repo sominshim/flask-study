@@ -5,13 +5,19 @@ from wtforms import StringField, SubmitField, PasswordField, BooleanField, Valid
 from wtforms.fields.simple import PasswordField
 from wtforms.validators import DataRequired, EqualTo, Length # 유효성 검사
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
+
+
+class LoginForm(FlaskForm):
+    email = StringField("Email", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
+    submit = SubmitField("Submit")
 
 # Create Model
-class Users(db.Model):
+class Users(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(30), nullable=False)
     email = db.Column(db.String(30), nullable=False, unique=True)
-    favorite_color = db.Column(db.String(30))
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     # Do some password stuff !!
     password_hash = db.Column(db.String(128))
