@@ -40,14 +40,14 @@ class Review(db.Model):
     user_name = db.Column(db.String(30), default="", nullable=True)
 
     def __init__(
-        self, user_id: int, book_id: int, name: str, content: str = "", score: int = 0
+        self, user_id: int, book_id: int, user_name: str, content: str = "", score: int = 0
     ):
        
         self.content = content
         self.score = score
         self.book_id = book_id
         self.user_id = user_id
-        self.user_name = name
+        self.user_name = user_name
 
 
 # Create Model

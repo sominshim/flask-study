@@ -188,7 +188,7 @@ def book_detail(id):
         )
 
     is_rented = None
-    can_write_review = False
+    can_write_review = True
     
     query_result = dict(
             Book.query.with_entities(
@@ -212,6 +212,19 @@ def book_detail(id):
         reviews=reviews
     )
 
+@app.route("/book_review/<int:id>", methods=['GET', 'POST'])
+def book_review(id):
+    action = request.form.get("act", type=str)
+
+    if action == "write":
+        content = request.form.get("content", type=str)
+        score = request.form.get("score", type=int)
+
+        review =Review(user_id = current_user.id, book_id= id, user_name = current_user.name, content = content, score=score)
+        db.session.add(review)
+        db.session.commit()
+
+    return redirect(url_for("test", id=id))
 
 # Create Custom Error Pages
 # Invalid URL
