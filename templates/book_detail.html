@@ -11,56 +11,50 @@
 
 {% block content %}
 <div class="container p-2">
-   <div class="card preview-card">
-      <div class="container-fliud">
-        <div class="wrapper row ">
 
-           <div class="preview col-md-6">
-              <div class="preview-pic">
-                <img class="book-image card-img-top" width="100%" height="500" src="{{ url_for('static', filename= book.img_path) }}" />
-              </div>  
-           </div>
+    <div class="preview col-md-6">
+        <div class="preview-pic">
+        <img class="book-image card-img-top" width="100%" height="500" src="{{ url_for('static', filename= book.img_path) }}" />
+        </div>  
+    </div>
 
-           <div class="details col-md-6">
-              <h3 class="product-title">{{book.book_name}}</h3>
-              <div class="rating">
+    <div class="container details col-md-6">
+        <h3 class="display-3">{{book.book_name}}</h3>
+        <div class="rating">
 
-                {% set score = book.score %} 
-                <div class="small-ratings">  
-                   <div class="card-subtitle mb-2 small-ratings">
-                   {% if score %}
-                      {{rating.print_rating(score["score"])}}
-                      <span class="rating-color-text">({{score["score"]|round(1, 'floor')}} 점)</span>
-                   {% else %}
-                      {{rating.print_rating(0)}}
-                   {% endif %}
-                   </div> 
-                </div> 
-                <span class="review-no">{% if score %}{{score["count"]}}{% else %}0{% endif %} 개의 리뷰</span> 
-              </div>
-              <p class="product-description">{{book.description}}</p>  
-              <p class="book-detail-header"><strong>저자: </strong>{{book.author}}</p>
-              <p class="book-detail-header"><strong>출판사: </strong>{{book.publisher}}</p> 
-              <p class="book-detail-header"><strong>출간일: </strong>{{book.publication_date | format_datetime()}}</p> 
-              <p class="book-detail-header"><strong>페이지: </strong>{{book.pages}}</p> 
-              <p class="book-detail-header"><strong>ISBN: </strong>{{book.isbn}}</p>  
-  
-              <div class="row"> 
-                <div class ="col-6">
-                   {%if not is_rented%}
-                   <button type="button" class="btn btn-md btn-main" data-bs-toggle="modal" data-bs-target="#rentalModal">대여하기</button> 
-                   {% else %}
-                   <button type="button" class="btn btn-md btn-danger" data-bs-toggle="modal" data-bs-target="#returnModal">반납하기</button> 
-                   {% endif %}
-                </div>
-                <div class ="col-6 text-end"> 
-                   <small class="text-muted">{{book.stock}} 권 남음</small> 
-                </div> 
-              </div>  
-           </div>
+        {% set score = book.score %} 
+        <div class="small-ratings">  
+            <div class="card-subtitle mb-2 small-ratings">
+            {% if score %}
+                {{rating.print_rating(score["score"])}}
+                <span class="rating-color-text">({{score["score"]|round(1, 'floor')}} 점)</span>
+            {% else %}
+                {{rating.print_rating(0)}}
+            {% endif %}
+            </div> 
+        </div> 
+        <span class="review-no">{% if score %}{{score["count"]}}{% else %}0{% endif %} 개의 리뷰</span> 
         </div>
-      </div>
-   </div>
+        <p class="product-description">{{book.descrip}}</p>  
+        <p class="book-detail-header"><strong>저자: </strong>{{book.author}}</p>
+        <p class="book-detail-header"><strong>출판사: </strong>{{book.publisher}}</p> 
+        <p class="book-detail-header"><strong>출간일: </strong>{{book.publication_date | format_datetime()}}</p> 
+        <p class="book-detail-header"><strong>페이지: </strong>{{book.pages}}</p> 
+        <p class="book-detail-header"><strong>ISBN: </strong>{{book.isbn}}</p>  
+
+        <div class="row"> 
+            <div class ="col-6">
+                {%if not is_rented%}
+                <button type="button" class="btn btn-md btn-main" data-bs-toggle="modal" data-bs-target="#rentalModal">대여하기</button> 
+                {% else %}
+                <button type="button" class="btn btn-md btn-danger" data-bs-toggle="modal" data-bs-target="#returnModal">반납하기</button> 
+                {% endif %}
+            </div>
+            <div class ="col-6 text-end"> 
+                <small class="text-muted">{{book.stock}} 권 남음</small> 
+            </div> 
+        </div>  
+    </div>
 </div>
 {% if not is_rented %}
 <div class="modal fade" id="rentalModal" tabindex="-1" aria-labelledby="rentalModalLabel" aria-hidden="true">
@@ -77,7 +71,7 @@
     <div class="modal-footer">
       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">아니요.</button> 
 
-      <form method="POST" action="{{url_for("main.book_rent",id=book.id)}}">  
+      <form method="POST" action="{{url_for('main.book_rent',id=book.id)}}">  
         <input type="hidden" name="book_id" id="book_id" value="{{book.id}}">
         <button type="submit" class="btn btn-primary">빌릴게요</button>
       </form>
@@ -105,9 +99,7 @@
         <input type="hidden" name="book_id" id="book_id" value="{{book.id}}">
         <button type="submit" class="btn btn-primary">반납 할게요</button>
       </form>
-    </div>
-   </div>
-  </div>
+  
 </div>
 {% endif %}
 <div class="container p-2 mb-5">
