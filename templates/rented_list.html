@@ -1,17 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
-{% if get_flashed_messages() %}
-    {% for messeage in get_flashed_messages() %}
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ messeage }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    {% endfor %}
-{% endif %}
 <div class="container">
-    <h2>도서 목록</h2>
+    <h2>대여 목록</h2>
     
     <div class="row row-cols-2 row-cols-lg-4 g-2 g-lg-3">  
     {% for book in book_list %}
@@ -24,13 +15,13 @@
   
               <div class="row align-items-center">
                   <div class="col col-7">
-                      <h6 class="card-subtitle mb-2 text-muted">{{ book.author }}</h6>
+                      <h6 class="card-subtitle mb-2 text-muted">{{book.author}}</h6>
                   </div>
                   <div class="col me-auto text-end">
-                      <h6 style="font-size:0.8em;" class="card-subtitle mb-2 text-muted">{{ book.stock }} 권 남음</h6>
+                      <h6 style="font-size:0.8em;" class="card-subtitle mb-2 text-muted">{{book.stock}} 권 남음</h6>
                   </div>
                   <div class="align-self-end">
-                      <a href="{{url_for('rental_record', id=book.id)}}" class="btn btn-primary">대여하기</a>
+                      <a href="#" class="btn btn-primary">대여하기</a>
                   </div>
               </div>
           </div>

@@ -12,21 +12,20 @@ class Rental(db.Model):
     __tablename__ = 'rental'
 
     id = db.Column(db.Integer, nullable=False, primary_key=True, autoincrement=True)
-    returned = db.Column(db.Boolean, nullable=False)
+    returned = db.Column(db.Boolean, nullable=False, default=False)
     rental_date = db.Column(db.DateTime)
-    return_date = db.Column(db.DateTime)
+    return_date = db.Column(db.DateTime, nullable=True)
     due_date = db.Column(db.DateTime)
-
     book_id = db.Column(db.Integer, db.ForeignKey("book.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
 
-    def __init__(self, id, returned, rental_date, return_date, due_date):
-        self.id = id
+    def __init__(self, returned, rental_date, due_date, book_id, user_id):
         self.returned = returned
         self.rental_date = rental_date
-        self.return_date = return_date
         self.due_date = due_date
+        self.book_id = book_id
+        self.user_id = user_id
 
 class Review(db.Model):
     __tablename__ = "review"
@@ -39,10 +38,7 @@ class Review(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     user_name = db.Column(db.String(30), default="", nullable=True)
 
-    def __init__(
-        self, user_id: int, book_id: int, user_name: str, content: str = "", score: int = 0
-    ):
-       
+    def __init__(self, user_id: int, book_id: int, user_name: str, content: str = "", score: int = 0):
         self.content = content
         self.score = score
         self.book_id = book_id
@@ -52,14 +48,16 @@ class Review(db.Model):
 
 # Create Model
 class Users(db.Model, UserMixin):
+    __tablename__ = 'users'
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(30), nullable=False)
     email = db.Column(db.String(30), nullable=False, unique=True)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     # Do some password stuff !!
     password_hash = db.Column(db.String(128))
-    rental = db.relationship(Rental, backref="user")
-    review = db.relationship(Review, backref="user")
+    rental = db.relationship(Rental, backref="users")
+    review = db.relationship(Review, backref="users")
 
 
     @property

@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from enum import unique
 from flask import Flask, render_template, flash, request, url_for, jsonify
 from werkzeug.utils import redirect
@@ -72,10 +73,37 @@ def logout():
 def dashboard():
     return render_template('dashboard.html')
 
-# 대여기록
-@app.route('/rental_record')
-def rental_record():
-    return render_template('dashboard.html')
+# 대여 기록
+@app.route('/rental_record/<int:id>')
+@login_required
+def rental_record(id):
+    book = Book.query.filter(Book.id == id).first()
+
+    # 책 재고가 없을 때
+    if book.stock == 0:
+        flash("재고가 없어 대출이 불가능합니다.")
+        return render_template('index.html', book_list= Book.query.all())
+
+    # 책 재고가 있을 때
+    else:
+        book.stock -= 1
+        user_id = current_user.id
+        print(user_id)
+
+        rental = Rental(
+            returned = True, 
+            rental_date=datetime.now(),
+            due_date=datetime.now()+timedelta(weeks=2),
+            user_id = current_user.id,
+            book_id = book.id
+            )
+        db.session.add(rental)
+        db.session.commit()
+        return render_template('test.html', rental=rental)
+        # db.session.add(rental)
+        # db.session.commit()
+
+        # return render_template('test.html', rental)
 
 
 # 반납하기

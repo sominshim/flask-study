@@ -20,17 +20,6 @@
             <strong>페이지: </strong>{{book.pages}}<br>
             <strong>ISBN: </strong>{{book.isbn}}<br>
           </p> 
-        <div class ="col-6">
-          {%if not is_rented%}
-          <button type="button" class="btn btn-md btn-primary" data-bs-toggle="modal" data-bs-target="#rentalModal">대여하기</button>
-          <small class="text-muted">
-              &nbsp;&nbsp;&nbsp;{{book.stock}} 권 남음</small> 
-          {% else %}
-          <button type="button" class="btn btn-md btn-danger" data-bs-toggle="modal" data-bs-target="#returnModal">반납하기</button>
-          <small class="text-muted">
-              &nbsp;&nbsp;&nbsp;{book.stock}} 권 남음</small> 
-          {% endif %}
-      </div>   
       </div>
     </div>
   </div>
