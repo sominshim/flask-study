@@ -2,15 +2,12 @@ from datetime import datetime, timedelta, date
 from enum import unique
 from flask import Flask, render_template, flash, request, url_for, jsonify
 from werkzeug.utils import redirect
-from wtforms.fields.simple import StringField, SubmitField
-from wtforms.validators import DataRequired
 from flask_paginate import Pagination, get_page_parameter
 from db_connect import db
 from flask_migrate import Migrate
 from models import Users, UserForm, PasswordForm, LoginForm, Rental, Book, Review
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin, login_manager, login_user, LoginManager, login_required, logout_user, current_user
-from sqlalchemy.sql import func
+from flask_login import login_manager, login_user, LoginManager, login_required, logout_user, current_user
 from sqlalchemy import asc, desc
 import babel
  
@@ -59,7 +56,7 @@ def login():
             flash("가입되지 않은 이메일입니다.")
     return render_template('login.html', form=form)
 
-# Creat Logout Page
+# 로그아웃
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
@@ -176,7 +173,7 @@ def delete(id):
             name = name,
             our_users=our_users)
 
-
+# 회원가입
 @app.route('/user/add', methods=['GET', 'POST'])
 def add_user():
     name = None
@@ -197,7 +194,7 @@ def add_user():
         form.email.data = ''
         form.password_hash.data = ''
 
-        flash("회원 가입 되었습니다.")
+        flash("회원가입 되었습니다.")
     our_users = Users.query.order_by(Users.date_added)
 
     return render_template("add_user.html",
@@ -205,6 +202,7 @@ def add_user():
         name = name,
         our_users=our_users)
 
+# 메인 화면
 @app.route('/')
 def index():
     return render_template(
@@ -212,30 +210,46 @@ def index():
         book_list= Book.query.all()
     )
 
+# 책 소개 페이지
 @app.route('/book_detail/<int:id>')
 def book_detail(id):
     book = Book.query.filter(Book.id == id).first()
     reviews = ( 
         Review.query.filter(Review.book_id == book.id)
-              .order_by(desc(Review.created)).all()
+              .order_by(Review.created.desc()).all()
         )
 
     return render_template(
-        "book_detail.html",
-        book = book,
-        reviews = reviews
-    )
+            "book_detail.html",
+            book = book,
+            reviews = reviews
+        )
 
-@app.route("/book_review/<int:id>", methods=['GET', 'POST'])
+# 책 리뷰
+@app.route("/book_review/<int:id>")
 def book_review(id):
     action = request.form.get("act", type=str)
 
     if action == "write":
+        # Review DB에 data추가
         content = request.form.get("content", type=str)
         score = request.form['score']
 
         review =Review(user_id = current_user.id, book_id= id, user_name = current_user.name, content = content, score=score)
         db.session.add(review)
+        db.session.commit()
+
+        # 평점 계산 후 Book DB에 score 업데이트
+        review_list = Review.query.filter(Review.book_id==id).all()
+
+        total_score = 0
+        for review in review_list:
+            total_score += review.score
+
+        score = total_score // len(review_list)
+        book = Book.query.filter(id==id).first()
+        book.score = score
+        
         db.session.commit()
 
     return redirect('/book_detail/<int:id>')
