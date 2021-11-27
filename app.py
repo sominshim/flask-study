@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from enum import unique
 from flask import Flask, render_template, flash, request, url_for, jsonify
 from werkzeug.utils import redirect
@@ -87,29 +87,45 @@ def rental_record(id):
     # 책 재고가 있을 때
     else:
         book.stock -= 1
-        user_id = current_user.id
-        print(user_id)
+        due_date=datetime.now()+timedelta(weeks=2)
 
         rental = Rental(
-            returned = True, 
+            returned = False, 
             rental_date=datetime.now(),
-            due_date=datetime.now()+timedelta(weeks=2),
+            due_date=due_date,
             user_id = current_user.id,
             book_id = book.id
             )
         db.session.add(rental)
         db.session.commit()
-        return render_template('test.html', rental=rental)
-        # db.session.add(rental)
-        # db.session.commit()
-
-        # return render_template('test.html', rental)
-
+        flash("해당 도서를 대여하였습니다. 반납기한은 {}까지 입니다.".format(due_date.date()))
+        return render_template('index.html', book_list= Book.query.all())
 
 # 반납하기
 @app.route('/book_return')
+@login_required
 def book_return():
-    return render_template('dashboard.html')
+    user_id = current_user.id
+    rental_list = db.session.query(Book, Rental).filter(Book.id==Rental.book_id).\
+                    filter(Rental.user_id==user_id, Rental.returned==0).all()
+
+    return render_template('return_book.html', rental_list =rental_list)
+
+
+@app.route('/update_rental/<int:id>')
+def update_rental(id):
+    user_id = current_user.id
+    rental = Rental.query.filter_by(user_id=user_id, book_id=id, returned=0).first()
+    rental.returned = 1
+    rental.return_date = datetime.now().date()
+    db.session.commit()
+
+    book = Book.query.filter(Book.id == id).first()
+    book.stock += 1
+
+    db.session.commit()
+
+    return redirect('/book_return')
 
 
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
