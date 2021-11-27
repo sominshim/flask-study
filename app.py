@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from datetime import datetime, timedelta, date
 from enum import unique
 from flask import Flask, render_template, flash, request, url_for, jsonify
