@@ -1,7 +1,7 @@
 <!-- <nav class="navbar navbar-expand-lg navbar-light bg-light"> -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('index') }}">Flask_Studing_Page</a>
+        <a class="navbar-brand" href="{{ url_for('index') }}">레이서 도서관</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -14,14 +14,20 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('logout')}}">Logout</a>
+                    <a class="nav-link" href="{{ url_for('rental_record')}}">대여기록</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('book_return')}}">반납하기</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout')}}">로그아웃</a>
                 </li>
                 {% else %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('add_user')}}">Register</a>
+                    <a class="nav-link" href="{{ url_for('add_user')}}">회원가입</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('login')}}">Login</a>
+                    <a class="nav-link" href="{{ url_for('login')}}">로그인</a>
                 </li>
                 {% endif %}
             </ul>

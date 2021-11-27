@@ -21,13 +21,10 @@ def format_datetime(value, format='yyyy-MM-dd HH:mm:ss'):
 app = Flask(__name__)
 app.jinja_env.filters['datetime'] = format_datetime
 # Add Database
-# Old SQLite DB
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 # New MySQL DB
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://username:@password/db_name'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Shim5186!!@localhost/users'
-# Secret Key
 app.config['SECRET_KEY'] = "my super secret key that no one is supposed to know"
+
 # Initialize the DB
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -53,12 +50,12 @@ def login():
             # check hash
             if check_password_hash(user.password_hash, form.password.data):
                 login_user(user)
-                flash("Login Successfull !")
-                return redirect(url_for('dashboard'))
+                flash("로그인 성공")
+                return redirect(url_for('index'))
             else:
-                flash("Wrong Password - Try Again!")
+                flash("비밀번호가 틀렸습니다 - 다시 시도해주세요")
         else:
-            flash("That User Doesn't Exist! Try Again...")
+            flash("가입되지 않은 이메일입니다.")
     return render_template('login.html', form=form)
 
 # Creat Logout Page
@@ -66,7 +63,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash("Your Have Been Logged Out! Thanks For Stopping By...")
+    flash("로그아웃되었습니다. 안녕히 가세요..")
     return redirect(url_for('login'))
 
 # Create Dashboard Page
@@ -74,6 +71,18 @@ def logout():
 @login_required
 def dashboard():
     return render_template('dashboard.html')
+
+# 대여기록
+@app.route('/rental_record')
+def rental_record():
+    return render_template('dashboard.html')
+
+
+# 반납하기
+@app.route('/book_return')
+def book_return():
+    return render_template('dashboard.html')
+
 
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
 def update(id):
@@ -144,7 +153,7 @@ def add_user():
         form.email.data = ''
         form.password_hash.data = ''
 
-        flash("User Added Successfully!")
+        flash("회원 가입 되었습니다.")
     our_users = Users.query.order_by(Users.date_added)
 
     return render_template("add_user.html",
@@ -159,8 +168,8 @@ def index():
         book_list= Book.query.all()
     )
 
-@app.route('/test/<int:id>')
-def test(id):
+@app.route('/book_detail/<int:id>')
+def book_detail(id):
     book = Book.query.filter(Book.id == id).first()
     reviews = ( 
         Review.query.filter(Review.book_id == book.id)
@@ -168,48 +177,9 @@ def test(id):
         )
 
     return render_template(
-        "test.html",
+        "book_detail.html",
         book = book,
         reviews = reviews
-    )
-
-
-
-@app.route("/book/<int:id>")
-# @is_exists_book(redirect_endpoint="main.index")
-def book_detail(id):
-    book = Book.query.filter(Book.id == id).first()
-
-    reviews = (
-            db.session.query(Review)
-            .filter(Review.book_id == book.id)
-            .order_by(desc(Review.created))
-            .all()
-        )
-
-    is_rented = None
-    can_write_review = True
-    
-    query_result = dict(
-            Book.query.with_entities(
-                func.avg(Review.score).label("score"), func.count().label("count")
-            )
-            .filter(Review.book_id == book.id)
-            .first()
-        )
-
-    if query_result["count"] > 0:
-        result = query_result
-    else: result = None
-
-        
-    return render_template(
-        "book_detail.html",
-        book=book,
-        is_rented=is_rented,
-        can_write_review=can_write_review,
-        get_score=result,
-        reviews=reviews
     )
 
 @app.route("/book_review/<int:id>", methods=['GET', 'POST'])
@@ -218,13 +188,13 @@ def book_review(id):
 
     if action == "write":
         content = request.form.get("content", type=str)
-        score = request.form.get("score", type=int)
+        score = request.form['score']
 
         review =Review(user_id = current_user.id, book_id= id, user_name = current_user.name, content = content, score=score)
         db.session.add(review)
         db.session.commit()
 
-    return redirect(url_for("test", id=id))
+    return redirect('/book_detail/<int:id>')
 
 # Create Custom Error Pages
 # Invalid URL
