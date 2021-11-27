@@ -31,6 +31,15 @@
                   <div class="col me-auto text-end">
                       <h6 style="font-size:0.8em;" class="card-subtitle mb-2 text-muted">{{ book.stock }} 권 남음</h6>
                   </div>
+                  <p class="card-text">
+                    {% if book.score == 5 %} ★★★★★
+                    {% elif book.score == 4 %} ★★★★☆
+                    {% elif book.score == 3 %} ★★★☆☆
+                    {% elif book.score == 2 %} ★★☆☆☆
+                    {% elif book.score == 1 %} ★☆☆☆☆
+                    {% else %} ☆☆☆☆☆
+                    {% endif %}
+                  </p>
                   <div class="align-self-end">
                       <a href="{{url_for('rental_record', id=book.id)}}" class="btn btn-primary">대여하기</a>
                   </div>

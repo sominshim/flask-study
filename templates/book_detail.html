@@ -92,27 +92,27 @@
           <div class="d-grid gap-2 d-md-flex justify-content-md-end">
               <legend class="col-form-label pt-0 " style="text-align: right;">점수: &nbsp;&nbsp;</legend>
 
-              <div class="col-sm-5">
+              <div class="col-sm-6">
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="score" id="score" value="5" required>
+                  <label class="form-check-label"> ★★★★★ </label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="score" id="score" value="4" required>
+                  <label class="form-check-label"> ★★★★☆ </label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="score" id="score" value="3" required>
+                  <label class="form-check-label"> ★★★☆☆ </label>
+                </div>
                   <div class="form-check form-check-inline">
-                      <input class="form-check-input" type="radio" name="score" id="score" value="1" required>
-                      <label class="form-check-label"> ★ </label>
+                    <input class="form-check-input" type="radio" name="score" id="score" value="2" required>
+                    <label class="form-check-label"> ★★☆☆☆ </label>
                   </div>
-                  <div class="form-check form-check-inline">
-                      <input class="form-check-input" type="radio" name="score" id="score" value="2" required>
-                      <label class="form-check-label"> ★★ </label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                      <input class="form-check-input" type="radio" name="score" id="score" value="3" required>
-                      <label class="form-check-label"> ★★★ </label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                      <input class="form-check-input" type="radio" name="score" id="score" value="4" required>
-                      <label class="form-check-label"> ★★★★ </label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                      <input class="form-check-input" type="radio" name="score" id="score" value="5" required>
-                      <label class="form-check-label"> ★★★★★ </label>
-                  </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="score" id="score" value="1" required>
+                    <label class="form-check-label"> ★☆☆☆☆ </label>
+                </div>
               </div>              
           </div>
       </fieldset>
@@ -142,12 +142,12 @@
         <div class="card-body">
           <p class="card-text">
             {% if review.score == 5 %} ★★★★★
-            {% elif review.score == 4 %} ★★★★
-            {% elif review.score == 3 %} ★★★
-            {% elif review.score == 2 %} ★★
-            {% else %} ★
+            {% elif review.score == 4 %} ★★★★☆
+            {% elif review.score == 3 %} ★★★☆☆
+            {% elif review.score == 2 %} ★★☆☆☆
+            {% else %} ★☆☆☆☆
             {% endif %}
-        </p>
+          </p>
           <p class="card-text">{{review.content}}</p>
         </div>    
       </div>
