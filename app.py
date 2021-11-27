@@ -110,7 +110,7 @@ def book_return():
     return render_template('return_book.html', rental_list =rental_list)
 
 
-@app.route('/update_rental/<int:id>')
+@app.route('/update_rental/<int:id>', methods=['POST', 'GET'])
 def update_rental(id):
     user_id = current_user.id
     rental = Rental.query.filter_by(user_id=user_id, book_id=id, returned=0).first()
@@ -227,7 +227,7 @@ def book_detail(id):
         )
 
 # 책 리뷰
-@app.route("/book_review/<int:id>")
+@app.route("/book_review/<int:id>", methods=['POST'])
 def book_review(id):
     action = request.form.get("act", type=str)
 
@@ -252,8 +252,9 @@ def book_review(id):
         book.score = score
         
         db.session.commit()
+        flash("댓글 작성 완료")
 
-    return redirect('/book_detail/<int:id>')
+    return redirect('/book_detail/{}'.format(id))
 
 # Create Custom Error Pages
 # Invalid URL
