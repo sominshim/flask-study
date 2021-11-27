@@ -2,27 +2,36 @@
 
 {% block content %}
 <div class="container">
-    <h2>대여 목록</h2>
+    <h3 class="border-bottom pb-2">대여 목록</h3>
     
     <div class="row row-cols-2 row-cols-lg-4 g-2 g-lg-3">  
-    {% for book in book_list %}
+    {% for book, rental in rental_list %}
     <div class="col">
       <div class="card book-card shadow-sm h-100">
           <a href="{{ url_for('book_detail', id=book.id)}}"><img class="book-image card-img-top" width="100%" height="150" style="object-fit: scale-down;" src="{{ url_for('static', filename='images/{}'.format(book.img_path)) }}" focusable="false"> </img></a>
   
           <div class="card-body">
-              <h5 class="card-title book-title" alt="{{ book.book_name }}"><a class="card-link" href="{{ url_for('book_detail', id=book.id)}}">{{ book.book_name }}</a></h5>
+              <h5 class="card-title book-title" alt="{{ book.book_name }}"><a class="nav-link" href="{{ url_for('book_detail', id=book.id)}}">{{ book.book_name }}</a></h5>
   
               <div class="row align-items-center">
-                  <div class="col col-7">
-                      <h6 class="card-subtitle mb-2 text-muted">{{book.author}}</h6>
-                  </div>
-                  <div class="col me-auto text-end">
-                      <h6 style="font-size:0.8em;" class="card-subtitle mb-2 text-muted">{{book.stock}} 권 남음</h6>
-                  </div>
-                  <div class="align-self-end">
-                      <a href="#" class="btn btn-primary">대여하기</a>
-                  </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">{{ book.author }}</li>
+                    <li class="list-group-item">{{ book.stock }} 권 남음</li>
+                  </ul>
+         
+                  <h4 class="card-text" style="text-align: center;">
+                    {% if book.score == 5 %} ★★★★★
+                    {% elif book.score == 4 %} ★★★★☆
+                    {% elif book.score == 3 %} ★★★☆☆
+                    {% elif book.score == 2 %} ★★☆☆☆
+                    {% elif book.score == 1 %} ★☆☆☆☆
+                    {% else %} ☆☆☆☆☆
+                    {% endif %}
+                  </h4>
+                  <h5 class="card-text" style="text-align: center;">
+                  {{ rental.rental_date | datetime }}&nbsp;&nbsp;&nbsp; ~&nbsp;&nbsp;&nbsp;&nbsp; </br> 
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ rental.return_date | datetime }} 
+                </h5>
               </div>
           </div>
       </div>
@@ -30,4 +39,25 @@
   {% endfor %} 
 </div>
 
+<div class="p-3 mb-5">
+    {% if pagination %}
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center">
+                <li class="page-item disabled">
+                    <a class="page-link">Previous</a>
+                  </li>
+                {% for i, page in enumerate(pagination.iter_pages()) %}
+                    {% if i+1 == pagination.page%}
+                        <li class="page-item active" aria-current="page"><a class="page-link" href="{{url_for('returned_list', page=i+1)}}">{{i+1}}</a></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="{{url_for('returned_list', page=i+1)}}">{{i+1}}</a></li>
+                    {% endif %}
+                {%- endfor %}
+                <li class="page-item">
+                    <a class="page-link" href="#">Next</a>
+                  </li>
+            </ul>
+        </nav>
+    {% endif %}
+    </div>
 {% endblock %}

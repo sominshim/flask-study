@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta, date
-from enum import unique
-from flask import Flask, render_template, flash, request, url_for, jsonify
+from flask import Flask, render_template, flash, request, url_for, session
 from werkzeug.utils import redirect
 from flask_paginate import Pagination, get_page_parameter
 from db_connect import db
@@ -9,10 +8,9 @@ from flask_migrate import Migrate
 from models import Users, UserForm, PasswordForm, LoginForm, Rental, Book, Review
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_manager, login_user, LoginManager, login_required, logout_user, current_user
-from sqlalchemy import asc, desc
 import babel
  
-def format_datetime(value, format='yyyy-MM-dd HH:mm:ss'):
+def format_datetime(value, format='yyyy-MM-dd'):
     return babel.dates.format_datetime(value, format)
  
 
@@ -49,6 +47,7 @@ def login():
             # check hash
             if check_password_hash(user.password_hash, form.password.data):
                 login_user(user)
+                session.get('login')
                 flash("로그인 성공")
                 return redirect(url_for('index'))
             else:
@@ -62,6 +61,7 @@ def login():
 @login_required
 def logout():
     logout_user()
+    session.clear()
     flash("로그아웃되었습니다. 안녕히 가세요..")
     return redirect(url_for('login'))
 
@@ -72,6 +72,23 @@ def dashboard():
     return render_template('dashboard.html')
 
 # 대여 기록
+@app.route('/returned_list')
+@login_required
+def returned_list():
+    user_id = current_user.id
+    rental = db.session.query(Book, Rental).filter(Book.id==Rental.book_id).\
+                    filter(Rental.user_id==user_id, Rental.returned==1).order_by(Rental.return_date.desc())
+    per_page = 8
+    page = request.args.get('page', 1, type=int)
+    pagination = rental.paginate(page,per_page,error_out=False)
+    rental_list = pagination.items
+    return render_template("rented_list.html",
+                            rental_list= rental_list,
+                            pagination=pagination,
+                            enumerate = enumerate)
+
+    # return render_template('rented_list.html', rental_list =rental_list)
+
 @app.route('/rental_record/<int:id>')
 @login_required
 def rental_record(id):
@@ -104,10 +121,17 @@ def rental_record(id):
 @login_required
 def book_return():
     user_id = current_user.id
-    rental_list = db.session.query(Book, Rental).filter(Book.id==Rental.book_id).\
-                    filter(Rental.user_id==user_id, Rental.returned==0).all()
+    rental = db.session.query(Book, Rental).filter(Book.id==Rental.book_id).\
+                    filter(Rental.user_id==user_id, Rental.returned==0).order_by(Rental.rental_date.desc())
+    per_page = 8
+    page = request.args.get('page', 1, type=int)
+    pagination = rental.paginate(page,per_page,error_out=False)
+    rental_list = pagination.items
 
-    return render_template('return_book.html', rental_list =rental_list)
+    return render_template("return_book.html",
+                            rental_list= rental_list,
+                            pagination=pagination,
+                            enumerate = enumerate)
 
 
 @app.route('/update_rental/<int:id>', methods=['POST', 'GET'])
@@ -115,7 +139,7 @@ def update_rental(id):
     user_id = current_user.id
     rental = Rental.query.filter_by(user_id=user_id, book_id=id, returned=0).first()
     rental.returned = 1
-    rental.return_date = datetime.now().date()
+    rental.return_date = datetime.now()
     db.session.commit()
 
     book = Book.query.filter(Book.id == id).first()
@@ -138,18 +162,18 @@ def update(id):
             db.session.commit()
             flash("User Updated Successfully!")
             return render_template("update.html", 
-                form=form,
-                name_to_update= name_to_update)
+                                    form=form,
+                                    name_to_update= name_to_update)
         except:
             flash("Error! Looks like there was a problem... try again")
             return render_template("update.html", 
-                form=form,
-                name_to_update= name_to_update)
+                                    form=form,
+                                    name_to_update= name_to_update)
     else:
         return render_template("update.html", 
-            form=form,
-            name_to_update= name_to_update,
-            id=id)
+                                form=form,
+                                name_to_update= name_to_update,
+                                id=id)
 
 @app.route('/delete/<int:id>')
 def delete(id):
@@ -164,51 +188,57 @@ def delete(id):
 
         our_users = Users.query.order_by(Users.date_added)
         return render_template("add_user.html",
-            form = form,
-            name = name,
-            our_users=our_users)
+                                form = form,
+                                name = name,
+                                our_users=our_users)
     except:
         flash("Whoops! There was a problem deleting user, try again...")
         return render_template("add_user.html",
-            form = form,
-            name = name,
-            our_users=our_users)
+                                form = form,
+                                name = name,
+                                our_users=our_users)
 
 # 회원가입
-@app.route('/user/add', methods=['GET', 'POST'])
+@app.route('/signup', methods=['GET', 'POST'])
 def add_user():
     name = None
     form = UserForm()
-
-    # Validation Form
-    if form.validate_on_submit():
+    
+    # 폼이 유효할 때
+    if request.method == 'POST' and form.validate_on_submit():
         user = Users.query.filter_by(email=form.email.data).first()
+        # DB에 해당 유저가 없을 때
         if user is None:
-            # Hash the password !!
             hashed_pw = generate_password_hash(form.password_hash.data, "sha256")
             user = Users(name=form.name.data, email=form.email.data, 
                         password_hash=hashed_pw)
             db.session.add(user)
             db.session.commit()
+        else:
+            flash("이미 가입된 아이디(이메일)입니다.")
+
         name = form.name.data
-        form.name.data = ''
-        form.email.data = ''
-        form.password_hash.data = ''
-
         flash("회원가입 되었습니다.")
-    our_users = Users.query.order_by(Users.date_added)
 
+    our_users = Users.query.order_by(Users.date_added)
     return render_template("add_user.html",
-        form = form,
-        name = name,
-        our_users=our_users)
+                            form = form,
+                            name = name,
+                            our_users=our_users)
 
 # 메인 화면
 @app.route('/')
 def index():
+    book = Book.query
+    per_page = 8
+    page = request.args.get('page', 1, type=int)
+    pagination = book.paginate(page,per_page,error_out=False)
+    book_list = pagination.items
     return render_template(
         "index.html",
-        book_list= Book.query.all()
+        book_list= book_list,
+        pagination=pagination,
+        enumerate = enumerate
     )
 
 # 책 소개 페이지
@@ -220,14 +250,13 @@ def book_detail(id):
               .order_by(Review.created.desc()).all()
         )
 
-    return render_template(
-            "book_detail.html",
-            book = book,
-            reviews = reviews
-        )
+    return render_template("book_detail.html",
+                            book = book,
+                            reviews = reviews)
 
 # 책 리뷰
 @app.route("/book_review/<int:id>", methods=['POST'])
+@login_required
 def book_review(id):
     action = request.form.get("act", type=str)
 
@@ -236,7 +265,7 @@ def book_review(id):
         content = request.form.get("content", type=str)
         score = request.form['score']
 
-        review =Review(user_id = current_user.id, book_id= id, user_name = current_user.name, content = content, score=score)
+        review =Review(user_id = current_user.id, book_id= id, user_name = current_user.name, content = content, score=score, created=datetime.now())
         db.session.add(review)
         db.session.commit()
 
@@ -247,7 +276,7 @@ def book_review(id):
         for review in review_list:
             total_score += review.score
 
-        score = total_score // len(review_list)
+        score = round((total_score / len(review_list)), 1)
         book = Book.query.filter(id==id).first()
         book.score = score
         
@@ -291,11 +320,11 @@ def test_pw():
 		passed = check_password_hash(pw_to_check.password_hash, password)
 
 	return render_template("test_pw.html", 
-		email = email,
-		password = password,
-		pw_to_check = pw_to_check,
-		passed = passed,
-		form = form)
+                            email = email,
+                            password = password,
+                            pw_to_check = pw_to_check,
+                            passed = passed,
+                            form = form)
 
 if __name__ == "__main__":
     app.run(debug=True)

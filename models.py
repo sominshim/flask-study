@@ -1,7 +1,7 @@
 from db_connect import db
 from datetime import datetime
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, BooleanField, ValidationError # 텍스트 입력.. 제출 등에 필요함
+from wtforms import StringField, SubmitField, PasswordField, EmailField, ValidationError # 텍스트 입력.. 제출 등에 필요함
 from wtforms.fields.simple import PasswordField
 from wtforms.validators import DataRequired, EqualTo, Length # 유효성 검사
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -38,12 +38,13 @@ class Review(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     user_name = db.Column(db.String(30), default="", nullable=True)
 
-    def __init__(self, user_id: int, book_id: int, user_name: str, content: str = "", score: int = 0):
+    def __init__(self, user_id, book_id, user_name, content, score, created):
         self.content = content
         self.score = score
         self.book_id = book_id
         self.user_id = user_id
         self.user_name = user_name
+        self.created = created
 
 
 # Create Model
@@ -77,12 +78,11 @@ class Users(db.Model, UserMixin):
 
 # Create a Form Class
 class UserForm(FlaskForm):
-    name = StringField("Name", validators=[DataRequired()])
-    email = StringField("Email", validators=[DataRequired()])
-    favorite_color = StringField("Favorite_Color")
-    password_hash = PasswordField('Password', validators=[DataRequired(), EqualTo('password_hash2', message='Passwords Must Match!')])
-    password_hash2 = PasswordField('Confirm Password', validators=[DataRequired()])
-    submit =SubmitField("Submit")
+    name = StringField("이름", validators=[DataRequired(), Length(min=3, max=25)])
+    email = EmailField("이메일", validators=[DataRequired()])
+    password_hash = PasswordField('비밀번호', validators=[DataRequired(), EqualTo('password_hash2', message='비밀번호가 일치하지 않습니다')])
+    password_hash2 = PasswordField('비밀번호 확인', validators=[DataRequired()])
+    submit =SubmitField("가입")
 
 # Create a PasswordForm Class
 class PasswordForm(FlaskForm):
@@ -91,9 +91,9 @@ class PasswordForm(FlaskForm):
     submit =SubmitField("Submit")
 
 class LoginForm(FlaskForm):
-    email = StringField("Email", validators=[DataRequired()])
-    password = PasswordField("Password", validators=[DataRequired()])
-    submit = SubmitField("Submit")
+    email = EmailField("이메일", validators=[DataRequired()])
+    password = PasswordField("비밀번호", validators=[DataRequired()])
+    submit = SubmitField("로그인")
     
 # learn more
 # https://flask-wtf.readthedocs.io/en/1.0.x/
