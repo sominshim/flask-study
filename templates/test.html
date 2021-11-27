@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card mb-3 p-3" >
+  <h5 class="border-bottom pb-2">책 소개</h5>
+  <div class="row justify-content-evenly align-items-center">
+    <div class="col-md-4">
+      <img class="img-fluid rounded-start" width="100%" height="150" style="object-fit: scale-down;" style="object-fit: scale-down;" src="{{ url_for('static', filename='images/{}'.format(book.img_path)) }}" alt="{{book.book_name}}"/>
+    </div>
+
+
+    <div class="col-md-5">
+      <div class="card-body">
+        <h5 class="card-title">{{book.book_name}}</h5>
+        <p class="card-text">{{book.descrip}}</p>
+        <p class="card-text">
+          <strong>저자: </strong>{{book.author}}<br>
+            <strong>출판사: </strong>{{book.publisher}}<br>
+            <strong>출간일: </strong>{{book.publication_date | datetime }}<br>
+            <strong>페이지: </strong>{{book.pages}}<br>
+            <strong>ISBN: </strong>{{book.isbn}}<br>
+          </p> 
+        <div class ="col-6">
+          {%if not is_rented%}
+          <button type="button" class="btn btn-md btn-primary" data-bs-toggle="modal" data-bs-target="#rentalModal">대여하기</button>
+          <small class="text-muted">
+              &nbsp;&nbsp;&nbsp;{{book.stock}} 권 남음</small> 
+          {% else %}
+          <button type="button" class="btn btn-md btn-danger" data-bs-toggle="modal" data-bs-target="#returnModal">반납하기</button>
+          <small class="text-muted">
+              &nbsp;&nbsp;&nbsp;{book.stock}} 권 남음</small> 
+          {% endif %}
+      </div>   
+      </div>
+    </div>
+  </div>
+</div>
+{% if not is_rented %}
+<div class="modal fade" id="rentalModal" tabindex="-1" aria-labelledby="rentalModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+   <div class="modal-content ">
+    <div class="modal-header">
+      <h5 class="modal-title" id="rentalModalLabel">책을 대여하시겠습니까?</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      "<strong>{{book.book_name}}</strong>" 
+      <p>책을 대여하시겠습니까? 한번 더 확인해주세요.</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">아니요.</button> 
+
+      <form method="POST" action="#">  
+        <input type="hidden" name="book_id" id="book_id" value="{{book.id}}">
+        <button type="submit" class="btn btn-primary">빌릴게요</button>
+      </form>
+    </div>
+   </div>
+  </div>
+</div>
+{% else %}
+
+<div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+   <div class="modal-content ">
+    <div class="modal-header">
+      <h5 class="modal-title" id="returnModalLabel">책을 반납하시겠습니까?</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      "<strong>{{book.book_name}}</strong>" 
+      <p>책을 반납하시겠습니까? 한번 더 확인해주세요.</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">아니요.</button> 
+
+      <form method="POST" action="#">  
+        <input type="hidden" name="book_id" id="book_id" value="{{book.id}}">
+        <button type="submit" class="btn btn-primary">반납 할게요</button>
+      </form>
+    </div>
+   </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- 댓글 작성 -->
+<div class="card p-3 mb-5 bg-body rounded">
+  <form action="{{url_for('book_review', id=book.id)}}" method="POST" > 
+    <input type="hidden" name="act" id="act" value ="write">
+      <h5 class="border-bottom pb-2">댓글 작성하기</h5>
+      <fieldset class="row">
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <legend class="col-form-label col-sm-2 pt-0 " style="text-align: right;" for="score">점수: &nbsp;&nbsp;</legend>
+
+              <div class="col-sm-5">
+                  <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="score" id="score" value="1" required>
+                      <label class="form-check-label" for="score"> ★ </label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="score" id="score" value="2" required>
+                      <label class="form-check-label" for="score"> ★★ </label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="score" id="score" value="3" required>
+                      <label class="form-check-label" for="score"> ★★★ </label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="score" id="score" value="4" required>
+                      <label class="form-check-label" for="score"> ★★★★ </label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="score" id="score" value="5" required>
+                      <label class="form-check-label" for="score"> ★★★★★ </label>
+                  </div>
+              </div>              
+          </div>
+      </fieldset>
+      <div class="row">
+          <div class="col col-12">
+              <div class="form-floating comment-box-form p-2 mb-2">
+                  <input class="form-control" name="content" id="content" required></textarea>
+                  <label for="content" class="mt-2 ms-2" for="content">내용</label>
+              </div>
+          </div>
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <button type="submit" class="btn btn-primary me-md-2">작성하기</button>
+          </div>
+      </div>
+  </form>
+  
+<!-- print review -->
+  <div class="p-3 mb-5 bg-body ">
+    <h5 class="border-bottom pb-2"></h5>
+  <div class="p-3 mb-5 bg-body ">
+      {% for review in reviews %}
+      <div class="card mb-3">
+        <div class="card-header">
+          {{review.user_name}}
+        </div>
+
+        <div class="card-body">
+          <p class="card-text">
+            {% if review.score == 5 %} ★★★★★
+            {% elif review.score == 4 %} ★★★★
+            {% elif review.score == 3 %} ★★★
+            {% elif review.score == 2 %} ★★
+            {% else %} ★
+            {% endif %}
+        </p>
+          <p class="card-text">{{review.content}}</p>
+        </div>    
+      </div>
+      {% endfor %}
+  </div>
+</div>
+  {% if not reviews %}
+  <div class="text-center mt-5">
+      <p class="text-muted">아직 리뷰가 없습니다. 첫 리뷰를 달아주세요!</p>
+  </div>
+  {% endif %}
+
+</div>
+
+{% endblock %} 
